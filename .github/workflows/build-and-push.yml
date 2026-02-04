@@ -1,0 +1,42 @@
+name: Build and Push Docker Image to GHCR
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        env:
+          UV_PYTHON: ${{ vars.UV_PYTHON || '3.13' }}
+        run: |
+          bash build.sh
+
+      - name: Tag and push to GHCR
+        run: |
+          docker tag cuda-uv-devcontainer:latest ghcr.io/${{ github.repository_owner }}/cuda-uv-devcontainer:latest
+          docker push ghcr.io/${{ github.repository_owner }}/cuda-uv-devcontainer:latest
