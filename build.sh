@@ -4,21 +4,16 @@ set -euo pipefail
 # Set default value for UV_PYTHON if not provided
 UV_PYTHON="${UV_PYTHON:-3.13}"
 
-# Define image name and read CUDA versions from environment or use defaults
 IMAGE_NAME="cuda-uv-devcontainer"
+# Debug: Check CUDA_VERSIONS environment variable (should be set in GitHub Actions workflow)
+echo "CUDA_VERSIONS environment variable: '${CUDA_VERSIONS:-}'"
+# Fallback to default CUDA versions if failed to read from environment
 CUDA_VERSIONS_STR="${CUDA_VERSIONS:-13.1.1-cudnn-devel-ubuntu24.04 12.9.1-cudnn-devel-ubuntu24.04}"
 IFS=' ' read -ra CUDA_VERSIONS <<< "$CUDA_VERSIONS_STR"
 
 log_info() { echo "[INFO] $1"; }
 log_success() { echo "[OK] $1"; }
 log_error() { echo "[ERROR] $1"; }
-
-# DEBUG: show CUDA versions source
-if [ -z "${CUDA_VERSIONS_ENV+x}" ]; then
-    log_info "Using default CUDA versions: ${CUDA_VERSIONS_STR}"
-else
-    log_info "Using environment CUDA_VERSIONS: ${CUDA_VERSIONS_STR}"
-fi
 
 # Build images for each CUDA version
 for CUDA_VERSION in "${CUDA_VERSIONS[@]}"; do
