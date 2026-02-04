@@ -1,6 +1,7 @@
 # syntax=docker/dockerfile:1
-ARG BASE_IMAGE=nvidia/cuda:13.1.1-cudnn-devel-ubuntu24.04
-FROM ${BASE_IMAGE} AS base
+ARG BASE_IMAGE=nvidia/cuda
+ARG BASE_TAG=13.1.1-cudnn-devel-ubuntu24.04
+FROM ${BASE_IMAGE}:${BASE_TAG} AS base
 
 # Metadata
 LABEL org.opencontainers.image.title="CUDA UV DevContainer"

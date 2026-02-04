@@ -8,6 +8,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
+  CUDA_VERSIONS: "13.1.1-cudnn-devel-ubuntu24.04 12.9.1-cudnn-devel-ubuntu24.04"
 
 jobs:
   build-and-push:
@@ -37,6 +38,18 @@ jobs:
           bash build.sh
 
       - name: Tag and push to GHCR
+        env:
+          CUDA_VERSIONS: ${{ env.CUDA_VERSIONS }}
         run: |
-          docker tag cuda-uv-devcontainer:latest ghcr.io/${{ github.repository_owner }}/cuda-uv-devcontainer:latest
-          docker push ghcr.io/${{ github.repository_owner }}/cuda-uv-devcontainer:latest
+          LATEST=true
+          for VERSION in $CUDA_VERSIONS; do
+            docker tag cuda-uv-devcontainer:$VERSION ghcr.io/${{ github.repository_owner }}/cuda-uv-devcontainer:$VERSION
+            docker push ghcr.io/${{ github.repository_owner }}/cuda-uv-devcontainer:$VERSION
+            
+            # Apply latest tag to the first version
+            if [ "$LATEST" = true ]; then
+              docker tag cuda-uv-devcontainer:$VERSION ghcr.io/${{ github.repository_owner }}/cuda-uv-devcontainer:latest
+              docker push ghcr.io/${{ github.repository_owner }}/cuda-uv-devcontainer:latest
+              LATEST=false
+            fi
+          done
