@@ -28,6 +28,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     ninja-build \
     pkg-config \
     sudo \
+    tree \
     vim \
     wget \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
@@ -40,17 +41,20 @@ RUN chmod +x /usr/local/bin/uv
 ENV UV_LINK_MODE=copy
 ENV UV_TORCH_BACKEND=auto
 
-# Python version
-ARG UV_PYTHON=3.13
+# Python versions to preinstall with uv
+ARG UV_PYTHONS="3.11 3.12 3.13"
+ARG UV_DEFAULT_PYTHON=3.13
 
-# Install Python
+# Install multiple Python versions
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv python install ${UV_PYTHON}
+    uv python install ${UV_PYTHONS}
 
-# Create symbolic links for Python
-RUN ln -sf "$(uv python find ${UV_PYTHON})" /usr/local/bin/python${UV_PYTHON} && \
-    ln -sf /usr/local/bin/python${UV_PYTHON} /usr/local/bin/python3 && \
-    ln -sf /usr/local/bin/python${UV_PYTHON} /usr/local/bin/python && \
+# Create symbolic links for each installed Python version and set defaults
+RUN for version in ${UV_PYTHONS}; do \
+      ln -sf "$(uv python find ${version})" "/usr/local/bin/python${version}"; \
+    done && \
+    ln -sf /usr/local/bin/python${UV_DEFAULT_PYTHON} /usr/local/bin/python3 && \
+    ln -sf /usr/local/bin/python${UV_DEFAULT_PYTHON} /usr/local/bin/python && \
     python --version
 
 # Set default shell to fish

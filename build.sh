@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Set default value for UV_PYTHON if not provided
-UV_PYTHON="${UV_PYTHON:-3.13}"
+# Set default values for uv-managed Python versions
+UV_PYTHONS="${UV_PYTHONS:-3.11 3.12 3.13}"
+UV_DEFAULT_PYTHON="${UV_DEFAULT_PYTHON:-3.13}"
 
 IMAGE_NAME="cuda-uv-devcontainer"
 # Debug: Check CUDA_VERSIONS environment variable (should be set in GitHub Actions workflow)
@@ -24,7 +25,8 @@ for CUDA_VERSION in "${CUDA_VERSIONS[@]}"; do
         --progress=plain \
         -t "$IMAGE_TAG" \
         --build-arg BASE_TAG="${CUDA_VERSION}" \
-        --build-arg UV_PYTHON="${UV_PYTHON}" \
+        --build-arg UV_PYTHONS="${UV_PYTHONS}" \
+        --build-arg UV_DEFAULT_PYTHON="${UV_DEFAULT_PYTHON}" \
         -f Dockerfile \
         . || { log_error "Image build failed for $IMAGE_TAG"; exit 1; }
     log_success "Image built: $IMAGE_TAG"

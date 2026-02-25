@@ -9,7 +9,8 @@ on:
 env:
   REGISTRY: ghcr.io
   CUDA_VERSIONS: "13.1.1-cudnn-devel-ubuntu24.04 12.9.1-cudnn-devel-ubuntu24.04"
-  UV_PYTHON: ${{ vars.UV_PYTHON || '3.13' }}
+  UV_PYTHONS: ${{ vars.UV_PYTHONS || '3.11 3.12 3.13' }}
+  UV_DEFAULT_PYTHON: ${{ vars.UV_DEFAULT_PYTHON || '3.13' }}
 
 jobs:
   build-and-push:
@@ -34,7 +35,8 @@ jobs:
 
       - name: Build Docker image
         env:
-          UV_PYTHON: ${{ env.UV_PYTHON }}
+          UV_PYTHONS: ${{ env.UV_PYTHONS }}
+          UV_DEFAULT_PYTHON: ${{ env.UV_DEFAULT_PYTHON }}
           CUDA_VERSIONS: ${{ env.CUDA_VERSIONS }}
         run: |
           bash build.sh
