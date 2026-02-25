@@ -32,7 +32,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Docker image
+      - name: Build Docker image
         env:
           UV_PYTHON: ${{ env.UV_PYTHON }}
           CUDA_VERSIONS: ${{ env.CUDA_VERSIONS }}

@@ -15,20 +15,21 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update -qq && \
     apt-get install -y --no-install-recommends \
-    curl \
-    wget \
-    git \
-    fish \
-    sudo \
-    ca-certificates \
     build-essential \
+    ca-certificates \
     clang \
-    clangd \
     clang-format \
+    clangd \
     cmake \
-    ninja-build \
+    curl \
+    fish \
     gdb \
+    git \
+    ninja-build \
+    pkg-config \
+    sudo \
     vim \
+    wget \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Copy uv from official image (using specific version for reproducibility)
