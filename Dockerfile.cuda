@@ -7,10 +7,8 @@ FROM ${BASE_IMAGE}:${BASE_TAG} AS base
 LABEL org.opencontainers.image.title="CUDA UV DevContainer"
 LABEL org.opencontainers.image.description="Image based on nvidia/cuda, added uv and some essential dev tools"
 
-# Prevent interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install system dependencies with BuildKit cache mount for faster builds
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update -qq && \
@@ -19,6 +17,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     ca-certificates \
     clang \
     clang-format \
+    clang-tidy \
     clangd \
     cmake \
     curl \
@@ -27,17 +26,24 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     git \
     ninja-build \
     pkg-config \
-    sudo \
     tree \
     vim \
     wget \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# Copy uv from official image (using specific version for reproducibility)
+RUN mkdir -p /root/.config/clangd && \
+    printf '%s\n' \
+      'If:' \
+      '  PathMatch: ".*\\.cu"' \
+      'CompileFlags:' \
+      '  Add:' \
+      '    - --cuda-path=/usr/local/cuda' \
+      > /root/.config/clangd/config.yaml
+
+# Copy uv from official image
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 RUN chmod +x /usr/local/bin/uv
 
-# Set up uv environment variables
 ENV UV_LINK_MODE=copy
 ENV UV_TORCH_BACKEND=auto
 
@@ -45,7 +51,6 @@ ENV UV_TORCH_BACKEND=auto
 ARG UV_PYTHONS="3.11 3.12 3.13"
 ARG UV_DEFAULT_PYTHON=3.13
 
-# Install multiple Python versions
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv python install ${UV_PYTHONS}
 
@@ -64,5 +69,4 @@ ENV SHELL=/usr/bin/fish
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD python --version || exit 1
 
-# Default command
 CMD ["/usr/bin/fish"]

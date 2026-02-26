@@ -1,19 +1,27 @@
-name: Build and Push Docker Image to GHCR
+name: Build and Push CUDA Images
 
 on:
   push:
     branches:
       - main
+    paths:
+      - ".github/workflows/build-cuda.yml"
+      - "Dockerfile.cuda"
+      - "scripts/build-cuda.sh"
+      - "scripts/utils.sh"
+      - ".dockerignore"
   workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
+  IMAGE_NAME: cuda-uv-devcontainer
   CUDA_VERSIONS: "13.1.1-cudnn-devel-ubuntu24.04 12.9.1-cudnn-devel-ubuntu24.04"
+  CUDA_LATEST_TAG: "13.1.1-cudnn-devel-ubuntu24.04"
   UV_PYTHONS: ${{ vars.UV_PYTHONS || '3.11 3.12 3.13' }}
   UV_DEFAULT_PYTHON: ${{ vars.UV_DEFAULT_PYTHON || '3.13' }}
 
 jobs:
-  build-and-push:
+  build-and-push-cuda:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -21,7 +29,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -33,27 +41,23 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build Docker image
+      - name: Build CUDA images
         env:
+          CUDA_VERSIONS: ${{ env.CUDA_VERSIONS }}
           UV_PYTHONS: ${{ env.UV_PYTHONS }}
           UV_DEFAULT_PYTHON: ${{ env.UV_DEFAULT_PYTHON }}
-          CUDA_VERSIONS: ${{ env.CUDA_VERSIONS }}
+          ACTION: build
         run: |
-          bash build.sh
+          bash scripts/build-cuda.sh
 
-      - name: Tag and push to GHCR
+      - name: Push CUDA images
         env:
+          REGISTRY: ${{ env.REGISTRY }}
+          IMAGE_NAME: ${{ env.IMAGE_NAME }}
+          REPOSITORY_OWNER: ${{ github.repository_owner }}
           CUDA_VERSIONS: ${{ env.CUDA_VERSIONS }}
+          CUDA_LATEST_TAG: ${{ env.CUDA_LATEST_TAG }}
+          PUSH_LATEST: "true"
+          ACTION: push
         run: |
-          LATEST=true
-          for VERSION in $CUDA_VERSIONS; do
-            docker tag cuda-uv-devcontainer:$VERSION ghcr.io/${{ github.repository_owner }}/cuda-uv-devcontainer:$VERSION
-            docker push ghcr.io/${{ github.repository_owner }}/cuda-uv-devcontainer:$VERSION
-            
-            # Apply latest tag to the first version
-            if [ "$LATEST" = true ]; then
-              docker tag cuda-uv-devcontainer:$VERSION ghcr.io/${{ github.repository_owner }}/cuda-uv-devcontainer:latest
-              docker push ghcr.io/${{ github.repository_owner }}/cuda-uv-devcontainer:latest
-              LATEST=false
-            fi
-          done
+          bash scripts/build-cuda.sh
