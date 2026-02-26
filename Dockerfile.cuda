@@ -13,14 +13,27 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update -qq && \
     apt-get install -y --no-install-recommends \
-    build-essential \
     ca-certificates \
+    curl \
+    gpg \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    . /etc/os-release && \
+    mkdir -p /usr/share/keyrings && \
+    curl -fsSL https://apt.kitware.com/keys/kitware-archive-latest.asc | \
+      gpg --dearmor -o /usr/share/keyrings/kitware-archive-keyring.gpg && \
+    echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ ${VERSION_CODENAME} main" \
+      > /etc/apt/sources.list.d/kitware.list && \
+    apt-get update -qq && \
+    apt-get install -y --no-install-recommends \
+    build-essential \
     clang \
     clang-format \
     clang-tidy \
     clangd \
     cmake \
-    curl \
     fish \
     gdb \
     git \
