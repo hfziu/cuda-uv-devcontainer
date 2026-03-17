@@ -53,6 +53,7 @@ RUN chmod +x /usr/local/bin/uv
 
 ENV UV_LINK_MODE=copy
 ENV UV_TORCH_BACKEND=auto
+ENV PATH="/root/.local/bin:${PATH}"
 
 # Python versions to preinstall with uv
 ARG UV_PYTHONS="3.10 3.11 3.12 3.13"
