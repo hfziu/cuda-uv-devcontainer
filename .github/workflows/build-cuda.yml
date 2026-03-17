@@ -15,10 +15,9 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: cuda-uv-devcontainer
-  CUDA_VERSIONS: "13.1.1-cudnn-devel-ubuntu24.04 12.9.1-cudnn-devel-ubuntu24.04"
-  CUDA_LATEST_TAG: "13.1.1-cudnn-devel-ubuntu24.04"
-  UV_PYTHONS: ${{ vars.UV_PYTHONS || '3.11 3.12 3.13' }}
-  UV_DEFAULT_PYTHON: ${{ vars.UV_DEFAULT_PYTHON || '3.13' }}
+  CUDA_VERSIONS: "13.2.0-cudnn-devel-ubuntu24.04 12.9.1-cudnn-devel-ubuntu24.04"
+  CUDA_LATEST_TAG: "13.2.0-cudnn-devel-ubuntu24.04"
+  UV_PYTHONS: ${{ vars.UV_PYTHONS || '3.10 3.11 3.12 3.13' }}
 
 jobs:
   build-and-push-cuda:
@@ -45,7 +44,6 @@ jobs:
         env:
           CUDA_VERSIONS: ${{ env.CUDA_VERSIONS }}
           UV_PYTHONS: ${{ env.UV_PYTHONS }}
-          UV_DEFAULT_PYTHON: ${{ env.UV_DEFAULT_PYTHON }}
           ACTION: build
         run: |
           bash scripts/build-cuda.sh

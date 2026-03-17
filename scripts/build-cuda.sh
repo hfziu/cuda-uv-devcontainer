@@ -6,9 +6,8 @@ source "${SCRIPT_DIR}/utils.sh"
 
 IMAGE_NAME="${IMAGE_NAME:-cuda-uv-devcontainer}"
 DOCKERFILE="${DOCKERFILE:-Dockerfile.cuda}"
-CUDA_VERSIONS_STR="${CUDA_VERSIONS:-13.1.1-cudnn-devel-ubuntu24.04 12.9.1-cudnn-devel-ubuntu24.04}"
-UV_PYTHONS="${UV_PYTHONS:-3.11 3.12 3.13}"
-UV_DEFAULT_PYTHON="${UV_DEFAULT_PYTHON:-3.13}"
+CUDA_VERSIONS_STR="${CUDA_VERSIONS:-13.2.0-cudnn-devel-ubuntu24.04 12.9.1-cudnn-devel-ubuntu24.04}"
+UV_PYTHONS="${UV_PYTHONS:-3.10 3.11 3.12 3.13}"
 REGISTRY="${REGISTRY:-ghcr.io}"
 REPOSITORY_OWNER="${REPOSITORY_OWNER:-${GITHUB_REPOSITORY_OWNER:-}}"
 ACTION="${ACTION:-build-and-push}"
@@ -31,7 +30,6 @@ build_images() {
       -t "${image_tag}" \
       --build-arg BASE_TAG="${cuda_tag}" \
       --build-arg UV_PYTHONS="${UV_PYTHONS}" \
-      --build-arg UV_DEFAULT_PYTHON="${UV_DEFAULT_PYTHON}" \
       -f "${DOCKERFILE}" \
       .
     log_ok "Built ${image_tag}"

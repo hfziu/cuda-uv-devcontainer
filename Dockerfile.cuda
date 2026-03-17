@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 ARG BASE_IMAGE=nvidia/cuda
-ARG BASE_TAG=13.1.1-cudnn-devel-ubuntu24.04
+ARG BASE_TAG=13.2.0-cudnn-devel-ubuntu24.04
 FROM ${BASE_IMAGE}:${BASE_TAG} AS base
 
 # Metadata
@@ -15,17 +15,10 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
-    gpg \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
-    . /etc/os-release && \
-    mkdir -p /usr/share/keyrings && \
-    curl -fsSL https://apt.kitware.com/keys/kitware-archive-latest.asc | \
-      gpg --dearmor -o /usr/share/keyrings/kitware-archive-keyring.gpg && \
-    echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ ${VERSION_CODENAME} main" \
-      > /etc/apt/sources.list.d/kitware.list && \
     apt-get update -qq && \
     apt-get install -y --no-install-recommends \
     build-essential \
@@ -44,6 +37,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     wget \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+# Configure clangd for CUDA development
 RUN mkdir -p /root/.config/clangd && \
     printf '%s\n' \
       'If:' \
@@ -53,7 +47,7 @@ RUN mkdir -p /root/.config/clangd && \
       '    - --cuda-path=/usr/local/cuda' \
       > /root/.config/clangd/config.yaml
 
-# Copy uv from official image
+# Copy uv from its official image
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 RUN chmod +x /usr/local/bin/uv
 
@@ -61,25 +55,19 @@ ENV UV_LINK_MODE=copy
 ENV UV_TORCH_BACKEND=auto
 
 # Python versions to preinstall with uv
-ARG UV_PYTHONS="3.11 3.12 3.13"
-ARG UV_DEFAULT_PYTHON=3.13
+ARG UV_PYTHONS="3.10 3.11 3.12 3.13"
 
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv python install ${UV_PYTHONS}
 
-# Create symbolic links for each installed Python version and set defaults
-RUN for version in ${UV_PYTHONS}; do \
-      ln -sf "$(uv python find ${version})" "/usr/local/bin/python${version}"; \
-    done && \
-    ln -sf /usr/local/bin/python${UV_DEFAULT_PYTHON} /usr/local/bin/python3 && \
-    ln -sf /usr/local/bin/python${UV_DEFAULT_PYTHON} /usr/local/bin/python && \
-    python --version
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv tool install ruff
 
-# Set default shell to fish
-ENV SHELL=/usr/bin/fish
+# Verify preinstalled Python runtimes are available to uv
+RUN uv python list
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD python --version || exit 1
+    CMD uv --version || exit 1
 
 CMD ["/usr/bin/fish"]
