@@ -1,13 +1,15 @@
-name: Build and Push CUDA Images
+name: Build and Push CUDA ROS Image
 
 on:
   push:
     branches:
       - main
     paths:
-      - ".github/workflows/build-cuda.yml"
-      - "Dockerfile.cuda"
-      - "scripts/build-cuda.sh"
+      - ".github/workflows/build-cuda-ros.yml"
+      - "Dockerfile.cuda-ros"
+      - "ros_entrypoint.sh"
+      - "scripts/build-cuda-ros.sh"
+      - "scripts/test-cuda-ros-rclpy.sh"
       - "scripts/utils.sh"
       - ".dockerignore"
   workflow_dispatch:
@@ -15,12 +17,12 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: cuda-uv-devcontainer
-  CUDA_VERSIONS: "13.2.0-cudnn-devel-ubuntu24.04 12.9.1-cudnn-devel-ubuntu24.04"
-  CUDA_LATEST_TAG: "13.2.0-cudnn-devel-ubuntu24.04"
+  CUDA_ROS_BASE_TAG: "12.9.1-cudnn-devel-ubuntu24.04"
+  CUDA_ROS_TAG: "cuda-ros"
   UV_PYTHONS: ${{ vars.UV_PYTHONS || '3.10 3.11 3.12 3.13' }}
 
 jobs:
-  build-and-push-cuda:
+  build-and-push-cuda-ros:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -40,22 +42,27 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build CUDA images
+      - name: Build CUDA ROS image
         env:
-          CUDA_VERSIONS: ${{ env.CUDA_VERSIONS }}
+          CUDA_ROS_BASE_TAG: ${{ env.CUDA_ROS_BASE_TAG }}
+          CUDA_ROS_TAG: ${{ env.CUDA_ROS_TAG }}
           UV_PYTHONS: ${{ env.UV_PYTHONS }}
           ACTION: build
         run: |
-          bash scripts/build-cuda.sh
+          bash scripts/build-cuda-ros.sh
 
-      - name: Push CUDA images
+      - name: Smoke test CUDA ROS image
+        env:
+          IMAGE: ${{ env.IMAGE_NAME }}:${{ env.CUDA_ROS_TAG }}
+        run: |
+          bash scripts/test-cuda-ros-rclpy.sh
+
+      - name: Push CUDA ROS image
         env:
           REGISTRY: ${{ env.REGISTRY }}
           IMAGE_NAME: ${{ env.IMAGE_NAME }}
           REPOSITORY_OWNER: ${{ github.repository_owner }}
-          CUDA_VERSIONS: ${{ env.CUDA_VERSIONS }}
-          CUDA_LATEST_TAG: ${{ env.CUDA_LATEST_TAG }}
-          PUSH_LATEST: "true"
+          CUDA_ROS_TAG: ${{ env.CUDA_ROS_TAG }}
           ACTION: push
         run: |
-          bash scripts/build-cuda.sh
+          bash scripts/build-cuda-ros.sh
