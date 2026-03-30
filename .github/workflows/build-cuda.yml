@@ -7,7 +7,11 @@ on:
     paths:
       - ".github/workflows/build-cuda.yml"
       - "Dockerfile.cuda"
+      - "Dockerfile.cuda-ros"
+      - "ros_entrypoint.sh"
       - "scripts/build-cuda.sh"
+      - "scripts/build-cuda-ros.sh"
+      - "scripts/test-cuda-ros-rclpy.sh"
       - "scripts/utils.sh"
       - ".dockerignore"
   workflow_dispatch:
@@ -17,6 +21,8 @@ env:
   IMAGE_NAME: cuda-uv-devcontainer
   CUDA_VERSIONS: "13.2.0-cudnn-devel-ubuntu24.04 12.9.1-cudnn-devel-ubuntu24.04"
   CUDA_LATEST_TAG: "13.2.0-cudnn-devel-ubuntu24.04"
+  CUDA_ROS_BASE_TAG: "12.9.1-cudnn-devel-ubuntu24.04"
+  CUDA_ROS_TAG: "cuda-ros"
   UV_PYTHONS: ${{ vars.UV_PYTHONS || '3.10 3.11 3.12 3.13' }}
 
 jobs:
@@ -59,3 +65,48 @@ jobs:
           ACTION: push
         run: |
           bash scripts/build-cuda.sh
+
+  build-and-push-cuda-ros:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build CUDA ROS image
+        env:
+          CUDA_ROS_BASE_TAG: ${{ env.CUDA_ROS_BASE_TAG }}
+          CUDA_ROS_TAG: ${{ env.CUDA_ROS_TAG }}
+          UV_PYTHONS: ${{ env.UV_PYTHONS }}
+          ACTION: build
+        run: |
+          bash scripts/build-cuda-ros.sh
+
+      - name: Smoke test CUDA ROS image
+        env:
+          IMAGE: ${{ env.IMAGE_NAME }}:${{ env.CUDA_ROS_TAG }}
+        run: |
+          bash scripts/test-cuda-ros-rclpy.sh
+
+      - name: Push CUDA ROS image
+        env:
+          REGISTRY: ${{ env.REGISTRY }}
+          IMAGE_NAME: ${{ env.IMAGE_NAME }}
+          REPOSITORY_OWNER: ${{ github.repository_owner }}
+          CUDA_ROS_TAG: ${{ env.CUDA_ROS_TAG }}
+          ACTION: push
+        run: |
+          bash scripts/build-cuda-ros.sh
