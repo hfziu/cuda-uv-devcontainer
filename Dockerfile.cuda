@@ -34,7 +34,6 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     tree \
     vim \
     wget \
-    zsh \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Configure clangd for CUDA development
@@ -54,7 +53,7 @@ RUN chmod +x /usr/local/bin/uv
 ENV UV_LINK_MODE=copy
 ENV UV_TORCH_BACKEND=auto
 ENV PATH="/root/.local/bin:${PATH}"
-ENV SHELL=/usr/bin/zsh
+ENV SHELL=/bin/bash
 
 # Python versions to preinstall with uv
 ARG UV_PYTHONS="3.10 3.11 3.12 3.13"
@@ -72,4 +71,4 @@ RUN uv python list
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD uv --version || exit 1
 
-CMD ["/usr/bin/zsh"]
+CMD ["/bin/bash"]

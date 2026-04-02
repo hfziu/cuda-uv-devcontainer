@@ -13,7 +13,7 @@ ENV ROS_DISTRO=jazzy
 ENV UV_LINK_MODE=copy
 ENV UV_TORCH_BACKEND=auto
 ENV PATH="/root/.local/bin:${PATH}"
-ENV SHELL=/usr/bin/zsh
+ENV SHELL=/bin/bash
 
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
@@ -61,7 +61,6 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     tree \
     vim \
     wget \
-    zsh \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 RUN rosdep init && \
@@ -100,4 +99,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD uv --version || exit 1
 
 ENTRYPOINT ["/ros_entrypoint.sh"]
-CMD ["/usr/bin/zsh"]
+CMD ["/bin/bash"]
