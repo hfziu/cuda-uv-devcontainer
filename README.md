@@ -8,7 +8,7 @@ In addition to the libraries and tools included in the base NVIDIA images, the f
 
 - Clang tooling: `clang`, `clangd`, `clang-format`, `clang-tidy`
 - Debugger: `gdb`
-- Shell and utilities: `tree`, `zsh`
+- Shell and utilities: `tree`
 
 - `uv`
 
@@ -32,8 +32,8 @@ docker build --progress=plain -f Dockerfile.cuda -t cuda-uv-devcontainer:test-cu
 ```
 
 ```bash
-docker run --rm cuda-uv-devcontainer:cuda-ros zsh -lc 'echo $0 && echo $ROS_DISTRO && ros2 --help >/dev/null && colcon --help >/dev/null && rosdep --help >/dev/null && uv --version && nvcc --version'
-docker run --rm cuda-uv-devcontainer:test-cuda zsh -lc 'echo $0 && uv --version && nvcc --version'
+docker run --rm cuda-uv-devcontainer:cuda-ros bash -lc 'echo $0 && echo $ROS_DISTRO && ros2 --help >/dev/null && colcon --help >/dev/null && rosdep --help >/dev/null && uv --version && nvcc --version'
+docker run --rm cuda-uv-devcontainer:test-cuda bash -lc 'echo $0 && uv --version && nvcc --version'
 docker run --rm cuda-uv-devcontainer:cuda-ros env | grep "^ROS_DISTRO=jazzy$"
 bash scripts/test-cuda-ros-rclpy.sh
 DOCKER_GPU_ARGS="--gpus all" bash scripts/test-cuda-ros-rclpy.sh
