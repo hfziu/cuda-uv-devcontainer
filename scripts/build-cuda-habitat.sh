@@ -8,8 +8,8 @@ IMAGE_NAME="${IMAGE_NAME:-cuda-uv-devcontainer}"
 DOCKERFILE="${DOCKERFILE:-Dockerfile.cuda-habitat}"
 CUDA_HABITAT_BASE_TAG="${CUDA_HABITAT_BASE_TAG:-12.9.1-cudnn-devel-ubuntu24.04}"
 CUDA_HABITAT_TAG="${CUDA_HABITAT_TAG:-cuda-habitat}"
-UV_PYTHONS="${UV_PYTHONS:-3.10 3.11 3.12 3.13}"
 HABITAT_PYTHON="${HABITAT_PYTHON:-3.12}"
+HABITAT_HEADLESS="${HABITAT_HEADLESS:-false}"
 REGISTRY="${REGISTRY:-ghcr.io}"
 REPOSITORY_OWNER="${REPOSITORY_OWNER:-${GITHUB_REPOSITORY_OWNER:-}}"
 ACTION="${ACTION:-build-and-push}"
@@ -21,8 +21,8 @@ build_image() {
   docker build \
     --progress=plain \
     --build-arg BASE_TAG="${CUDA_HABITAT_BASE_TAG}" \
-    --build-arg UV_PYTHONS="${UV_PYTHONS}" \
     --build-arg HABITAT_PYTHON="${HABITAT_PYTHON}" \
+    --build-arg HABITAT_HEADLESS="${HABITAT_HEADLESS}" \
     -t "${local_image}" \
     -f "${DOCKERFILE}" \
     .

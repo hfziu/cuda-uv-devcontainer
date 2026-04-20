@@ -19,8 +19,8 @@ ENV PATH="/root/.local/bin:${VIRTUAL_ENV}/bin:${PATH}"
 ENV MAGNUM_LOG=quiet
 ENV HABITAT_SIM_LOG=quiet
 
-ARG UV_PYTHONS="3.10 3.11 3.12 3.13"
 ARG HABITAT_PYTHON=3.12
+ARG HABITAT_HEADLESS=false
 ARG HABITAT_VERSION=v0.3.3
 ARG HABITAT_BUILD_JOBS=4
 ARG HABITAT_SRC_ROOT=/opt/habitat-src
@@ -88,7 +88,7 @@ RUN mkdir -p /root/.config/clangd && \
 COPY --from=uv --chmod=755 /uv /usr/local/bin/uv
 
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv python install ${UV_PYTHONS}
+    uv python install ${HABITAT_PYTHON}
 
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv tool install ruff
@@ -129,7 +129,7 @@ PY
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install --python ${VIRTUAL_ENV}/bin/python pip setuptools wheel && \
     uv pip install --python ${VIRTUAL_ENV}/bin/python -r ${HABITAT_SRC_ROOT}/habitat-sim/requirements.txt && \
-    HEADLESS=True WITH_BULLET=True uv pip install --python ${VIRTUAL_ENV}/bin/python --no-build-isolation ${HABITAT_SRC_ROOT}/habitat-sim && \
+    HEADLESS=${HABITAT_HEADLESS} WITH_BULLET=True uv pip install --python ${VIRTUAL_ENV}/bin/python --no-build-isolation ${HABITAT_SRC_ROOT}/habitat-sim && \
     uv pip install --python ${VIRTUAL_ENV}/bin/python -r ${HABITAT_SRC_ROOT}/habitat-lab/habitat-lab/requirements.txt && \
     uv pip install --python ${VIRTUAL_ENV}/bin/python -e ${HABITAT_SRC_ROOT}/habitat-lab/habitat-lab
 

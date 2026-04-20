@@ -18,8 +18,8 @@ env:
   IMAGE_NAME: cuda-uv-devcontainer
   CUDA_HABITAT_BASE_TAG: "12.9.1-cudnn-devel-ubuntu24.04"
   CUDA_HABITAT_TAG: "cuda-habitat"
-  UV_PYTHONS: ${{ vars.UV_PYTHONS || '3.10 3.11 3.12 3.13' }}
   HABITAT_PYTHON: "3.12"
+  HABITAT_HEADLESS: "false"
 
 jobs:
   build-and-push-cuda-habitat:
@@ -46,8 +46,8 @@ jobs:
         env:
           CUDA_HABITAT_BASE_TAG: ${{ env.CUDA_HABITAT_BASE_TAG }}
           CUDA_HABITAT_TAG: ${{ env.CUDA_HABITAT_TAG }}
-          UV_PYTHONS: ${{ env.UV_PYTHONS }}
           HABITAT_PYTHON: ${{ env.HABITAT_PYTHON }}
+          HABITAT_HEADLESS: ${{ env.HABITAT_HEADLESS }}
           ACTION: build
         run: |
           bash scripts/build-cuda-habitat.sh
