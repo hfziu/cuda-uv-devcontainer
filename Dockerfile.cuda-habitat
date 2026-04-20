@@ -1,0 +1,145 @@
+# syntax=docker/dockerfile:1
+ARG BASE_IMAGE=nvidia/cuda
+ARG BASE_TAG=12.9.1-cudnn-devel-ubuntu24.04
+ARG UV_VERSION=latest
+FROM ghcr.io/astral-sh/uv:${UV_VERSION} AS uv
+FROM ${BASE_IMAGE}:${BASE_TAG} AS base
+
+LABEL org.opencontainers.image.title="CUDA Habitat UV DevContainer"
+LABEL org.opencontainers.image.description="Image based on nvidia/cuda with Habitat-Sim, Habitat-Lab, uv, and common development tools"
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+ENV UV_LINK_MODE=copy
+ENV UV_TORCH_BACKEND=auto
+ENV SHELL=/bin/bash
+ENV VIRTUAL_ENV=/opt/habitat
+ENV PATH="/root/.local/bin:${VIRTUAL_ENV}/bin:${PATH}"
+ENV MAGNUM_LOG=quiet
+ENV HABITAT_SIM_LOG=quiet
+
+ARG UV_PYTHONS="3.10 3.11 3.12 3.13"
+ARG HABITAT_PYTHON=3.12
+ARG HABITAT_VERSION=v0.3.3
+ARG HABITAT_BUILD_JOBS=4
+ARG HABITAT_SRC_ROOT=/opt/habitat-src
+
+ENV CMAKE_BUILD_PARALLEL_LEVEL=${HABITAT_BUILD_JOBS}
+
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    echo 'Etc/UTC' > /etc/timezone && \
+    ln -snf /usr/share/zoneinfo/Etc/UTC /etc/localtime && \
+    apt-get update -qq && \
+    apt-get install -y --no-install-recommends \
+    ca-certificates \
+    curl \
+    tzdata
+
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update -qq && \
+    apt-get install -y --no-install-recommends \
+    build-essential \
+    clang \
+    clang-format \
+    clang-tidy \
+    clangd \
+    cmake \
+    freeglut3-dev \
+    gdb \
+    git \
+    git-lfs \
+    libegl1-mesa-dev \
+    libglm-dev \
+    libglu1-mesa-dev \
+    libhdf5-dev \
+    libjpeg-dev \
+    libomp-dev \
+    libx11-6 \
+    libxau6 \
+    libxcb1 \
+    libxcursor1 \
+    libxext6 \
+    libxfixes3 \
+    libxi6 \
+    libxinerama1 \
+    libxrandr2 \
+    mesa-utils \
+    ninja-build \
+    pkg-config \
+    tree \
+    unzip \
+    vim \
+    wget \
+    xorg-dev \
+    zip
+
+RUN mkdir -p /root/.config/clangd && \
+    printf '%s\n' \
+      'If:' \
+      '  PathMatch: ".*\\.cu"' \
+      'CompileFlags:' \
+      '  Add:' \
+      '    - --cuda-path=/usr/local/cuda' \
+      > /root/.config/clangd/config.yaml
+
+COPY --from=uv --chmod=755 /uv /usr/local/bin/uv
+
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv python install ${UV_PYTHONS}
+
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv tool install ruff
+
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv venv --python ${HABITAT_PYTHON} ${VIRTUAL_ENV}
+
+WORKDIR ${HABITAT_SRC_ROOT}
+
+RUN git clone --depth 1 --branch ${HABITAT_VERSION} https://github.com/facebookresearch/habitat-sim.git && \
+    git -C habitat-sim submodule update --init --recursive --jobs 8 && \
+    git clone --depth 1 --branch ${HABITAT_VERSION} https://github.com/facebookresearch/habitat-lab.git && \
+    find . -name .git -type d -prune -exec rm -rf {} +
+
+RUN python - <<'PY'
+from pathlib import Path
+
+path = Path("/opt/habitat-src/habitat-lab/habitat-lab/habitat/config/default_structured_configs.py")
+text = path.read_text()
+replacements = {
+    "iterator_options: IteratorOptionsConfig = IteratorOptionsConfig()": "iterator_options: IteratorOptionsConfig = field(default_factory=IteratorOptionsConfig)",
+    "fog_of_war: FogOfWarConfig = FogOfWarConfig()": "fog_of_war: FogOfWarConfig = field(default_factory=FogOfWarConfig)",
+    "habitat_sim_v0: HabitatSimV0Config = HabitatSimV0Config()": "habitat_sim_v0: HabitatSimV0Config = field(default_factory=HabitatSimV0Config)",
+    "renderer: RendererConfig = RendererConfig()": "renderer: RendererConfig = field(default_factory=RendererConfig)",
+    "environment: EnvironmentConfig = EnvironmentConfig()": "environment: EnvironmentConfig = field(default_factory=EnvironmentConfig)",
+    "simulator: SimulatorConfig = SimulatorConfig()": "simulator: SimulatorConfig = field(default_factory=SimulatorConfig)",
+    "gym: GymConfig = GymConfig()": "gym: GymConfig = field(default_factory=GymConfig)",
+}
+
+for old, new in replacements.items():
+    if old not in text:
+        raise SystemExit(f"expected pattern not found: {old}")
+    text = text.replace(old, new)
+
+path.write_text(text)
+PY
+
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --python ${VIRTUAL_ENV}/bin/python pip setuptools wheel && \
+    uv pip install --python ${VIRTUAL_ENV}/bin/python -r ${HABITAT_SRC_ROOT}/habitat-sim/requirements.txt && \
+    HEADLESS=True WITH_BULLET=True uv pip install --python ${VIRTUAL_ENV}/bin/python --no-build-isolation ${HABITAT_SRC_ROOT}/habitat-sim && \
+    uv pip install --python ${VIRTUAL_ENV}/bin/python -r ${HABITAT_SRC_ROOT}/habitat-lab/habitat-lab/requirements.txt && \
+    uv pip install --python ${VIRTUAL_ENV}/bin/python -e ${HABITAT_SRC_ROOT}/habitat-lab/habitat-lab
+
+COPY --chmod=755 ./scripts/test-habitat.sh /usr/local/bin/test-habitat
+
+RUN uv python list && \
+    python --version && \
+    python -c "import habitat, habitat_sim; print(habitat.__file__); print(habitat_sim.__file__)"
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD python -c "import habitat, habitat_sim" || exit 1
+
+CMD ["/bin/bash"]
