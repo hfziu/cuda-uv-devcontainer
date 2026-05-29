@@ -15,7 +15,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: cuda-uv-devcontainer
-  CUDA_VERSIONS: "13.2.0-cudnn-devel-ubuntu24.04 12.9.1-cudnn-devel-ubuntu24.04"
+  CUDA_VERSIONS: "13.2.0-cudnn-devel-ubuntu24.04 12.9.2-cudnn-devel-ubuntu24.04"
   CUDA_LATEST_TAG: "13.2.0-cudnn-devel-ubuntu24.04"
   UV_PYTHONS: ${{ vars.UV_PYTHONS || '3.10 3.11 3.12 3.13' }}
 

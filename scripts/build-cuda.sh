@@ -6,7 +6,7 @@ source "${SCRIPT_DIR}/utils.sh"
 
 IMAGE_NAME="${IMAGE_NAME:-cuda-uv-devcontainer}"
 DOCKERFILE="${DOCKERFILE:-Dockerfile.cuda}"
-CUDA_VERSIONS_STR="${CUDA_VERSIONS:-13.2.0-cudnn-devel-ubuntu24.04 12.9.1-cudnn-devel-ubuntu24.04}"
+CUDA_VERSIONS_STR="${CUDA_VERSIONS:-13.2.0-cudnn-devel-ubuntu24.04 12.9.2-cudnn-devel-ubuntu24.04}"
 UV_PYTHONS="${UV_PYTHONS:-3.10 3.11 3.12 3.13}"
 REGISTRY="${REGISTRY:-ghcr.io}"
 REPOSITORY_OWNER="${REPOSITORY_OWNER:-${GITHUB_REPOSITORY_OWNER:-}}"

@@ -16,7 +16,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: cuda-uv-devcontainer
-  CUDA_HABITAT_BASE_TAG: "12.9.1-cudnn-devel-ubuntu24.04"
+  CUDA_HABITAT_BASE_TAG: "12.9.2-cudnn-devel-ubuntu24.04"
   CUDA_HABITAT_TAG: "cuda-habitat"
   HABITAT_PYTHON: "3.12"
   HABITAT_HEADLESS: "false"

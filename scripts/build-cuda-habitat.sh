@@ -6,7 +6,7 @@ source "${SCRIPT_DIR}/utils.sh"
 
 IMAGE_NAME="${IMAGE_NAME:-cuda-uv-devcontainer}"
 DOCKERFILE="${DOCKERFILE:-Dockerfile.cuda-habitat}"
-CUDA_HABITAT_BASE_TAG="${CUDA_HABITAT_BASE_TAG:-12.9.1-cudnn-devel-ubuntu24.04}"
+CUDA_HABITAT_BASE_TAG="${CUDA_HABITAT_BASE_TAG:-12.9.2-cudnn-devel-ubuntu24.04}"
 CUDA_HABITAT_TAG="${CUDA_HABITAT_TAG:-cuda-habitat}"
 HABITAT_PYTHON="${HABITAT_PYTHON:-3.12}"
 HABITAT_HEADLESS="${HABITAT_HEADLESS:-false}"

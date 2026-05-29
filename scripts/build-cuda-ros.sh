@@ -6,7 +6,7 @@ source "${SCRIPT_DIR}/utils.sh"
 
 IMAGE_NAME="${IMAGE_NAME:-cuda-uv-devcontainer}"
 DOCKERFILE="${DOCKERFILE:-Dockerfile.cuda-ros}"
-CUDA_ROS_BASE_TAG="${CUDA_ROS_BASE_TAG:-12.9.1-cudnn-devel-ubuntu24.04}"
+CUDA_ROS_BASE_TAG="${CUDA_ROS_BASE_TAG:-12.9.2-cudnn-devel-ubuntu24.04}"
 CUDA_ROS_TAG="${CUDA_ROS_TAG:-cuda-ros}"
 UV_PYTHONS="${UV_PYTHONS:-3.10 3.11 3.12 3.13}"
 REGISTRY="${REGISTRY:-ghcr.io}"

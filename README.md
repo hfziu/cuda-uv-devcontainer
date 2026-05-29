@@ -21,13 +21,13 @@ May include in the future:
 Images are available from `ghcr.io/hfziu/cuda-uv-devcontainer`.
 
 - `ghcr.io/hfziu/cuda-uv-devcontainer:<base-tag>` - based on `nvidia/cuda`, where `<base-tag>` is a valid tag from [`nvidia/cuda`](https://hub.docker.com/r/nvidia/cuda)
-  - currently only `13.2.0-cudnn-devel-ubuntu24.04` and `12.9.1-cudnn-devel-ubuntu24.04` are supported
-- `ghcr.io/hfziu/cuda-uv-devcontainer:cuda-ros` - based on `nvidia/cuda:12.9.1-cudnn-devel-ubuntu24.04` plus the official ROS 2 Jazzy `ros-base` package set for Ubuntu 24.04
+  - currently only `13.2.0-cudnn-devel-ubuntu24.04` and `12.9.2-cudnn-devel-ubuntu24.04` are supported
+- `ghcr.io/hfziu/cuda-uv-devcontainer:cuda-ros` - based on `nvidia/cuda:12.9.2-cudnn-devel-ubuntu24.04` plus the official ROS 2 Jazzy `ros-base` package set for Ubuntu 24.04
 
 ## Local Build
 
 ```bash
-docker build --progress=plain -f Dockerfile.cuda-ros -t cuda-uv-devcontainer:cuda-ros --build-arg BASE_TAG=12.9.1-cudnn-devel-ubuntu24.04 .
+docker build --progress=plain -f Dockerfile.cuda-ros -t cuda-uv-devcontainer:cuda-ros --build-arg BASE_TAG=12.9.2-cudnn-devel-ubuntu24.04 .
 docker build --progress=plain -f Dockerfile.cuda -t cuda-uv-devcontainer:test-cuda .
 ```
 
